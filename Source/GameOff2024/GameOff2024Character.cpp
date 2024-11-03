@@ -20,7 +20,7 @@ AGameOff2024Character::AGameOff2024Character()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -50,6 +50,9 @@ AGameOff2024Character::AGameOff2024Character()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// Extra jump condition
+	bCanJumpDuringDialogue = true; // or false based on your needs
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
@@ -58,6 +61,18 @@ void AGameOff2024Character::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+}
+
+bool AGameOff2024Character::CanJumpInternal_Implementation() const
+{
+	// Check if jumping is allowed by custom conditions (e.g., not during dialogue)
+	if (!bCanJumpDuringDialogue)
+	{
+		return false; // Prevent jumping if the condition isn't met
+	}
+
+	// Call the parent class's CanJump to respect default jump conditions
+	return !bIsCrouched && JumpIsAllowedInternal();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,10 +88,10 @@ void AGameOff2024Character::SetupPlayerInputComponent(UInputComponent* PlayerInp
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-	
+
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -106,7 +121,7 @@ void AGameOff2024Character::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 

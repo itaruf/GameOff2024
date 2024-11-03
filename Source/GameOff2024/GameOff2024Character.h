@@ -27,7 +27,7 @@ class AGameOff2024Character : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-	
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -46,21 +46,18 @@ class AGameOff2024Character : public ACharacter
 
 public:
 	AGameOff2024Character();
-	
 
 protected:
-
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
 
@@ -69,5 +66,17 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-};
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
+	bool bCanJumpDuringDialogue;
+
+public:
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Input, DisplayName = "Can Jump During Dialogue")
+	FORCEINLINE bool CanJumpDuringDialogue() const { return bCanJumpDuringDialogue; }
+
+	UFUNCTION(BlueprintCallable, Category = Input, DisplayName = "Set Can Jump During Dialogue")
+	FORCEINLINE void SetCanJumpDuringDialogue(const bool bNewCanJumpDuringDialogue) { bCanJumpDuringDialogue = bNewCanJumpDuringDialogue; }
+
+	virtual bool CanJumpInternal_Implementation() const override;
+};
