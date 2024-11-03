@@ -28,7 +28,7 @@
 		},
 		{
 			"Name": "CustomizableInteractionPlugin",
-			"Enabled": true,
+			"Enabled": false,
 			"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/customizable-interaction-plugin"
 		},
 		{
