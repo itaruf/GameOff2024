@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Components/InteractComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -50,6 +51,9 @@ AGameOff2024Character::AGameOff2024Character()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	// // Create an interact component
+	// InteractComponent = CreateDefaultSubobject<UInteractComponent>(TEXT("InteractComponent"));
+	
 	// Extra jump condition
 	bCanJumpDuringDialogue = true; // or false based on your needs
 

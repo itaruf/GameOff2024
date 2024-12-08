@@ -5,10 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/IDialogueProvider.h"
+#include "Interfaces/IInteractProvider.h"
 #include "Logging/LogMacros.h"
 #include "GameOff2024Character.generated.h"
 
-class UDialogueSpeakerComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -18,7 +18,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AGameOff2024Character : public ACharacter, public IDialogueProvider
+class AGameOff2024Character : public ACharacter, public IDialogueProvider, public IInteractProvider
 {
 	GENERATED_BODY()
 
@@ -41,6 +41,7 @@ class AGameOff2024Character : public ACharacter, public IDialogueProvider
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
+
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -73,18 +74,30 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
 	bool bCanJumpDuringDialogue;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadWrite, Category = "Components|Dialogue")
 	UDialogueSpeakerComponent* DialogueSpeakerComponent;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Components|Interact")
+	UInteractComponent* InteractComponent;
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Input, DisplayName = "Can Jump During Dialogue")
 	FORCEINLINE bool CanJumpDuringDialogue() const { return bCanJumpDuringDialogue; }
 
 	UFUNCTION(BlueprintCallable, Category = Input, DisplayName = "Set Can Jump During Dialogue")
-	FORCEINLINE void SetCanJumpDuringDialogue(const bool bNewCanJumpDuringDialogue) { bCanJumpDuringDialogue = bNewCanJumpDuringDialogue; }
+	FORCEINLINE void SetCanJumpDuringDialogue(const bool bNewCanJumpDuringDialogue)
+	{
+		bCanJumpDuringDialogue = bNewCanJumpDuringDialogue;
+	}
 
 	virtual bool CanJumpInternal_Implementation() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Dialogue", DisplayName = "Get Dialogue Speaker Component")
-	FORCEINLINE UDialogueSpeakerComponent* GetDialogueSpeakerComponent_Implementation() const override { return DialogueSpeakerComponent; }
+	FORCEINLINE UDialogueSpeakerComponent* GetDialogueSpeakerComponent_Implementation() const override
+	{
+		return DialogueSpeakerComponent;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "Interact", DisplayName = "Get Interact Component")
+	FORCEINLINE UInteractComponent* GetInteractComponent_Implementation() const override { return InteractComponent; }
 };
