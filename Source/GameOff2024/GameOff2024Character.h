@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/IDialogueProvider.h"
 #include "Logging/LogMacros.h"
 #include "GameOff2024Character.generated.h"
 
+class UDialogueSpeakerComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -16,7 +18,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AGameOff2024Character : public ACharacter
+class AGameOff2024Character : public ACharacter, public IDialogueProvider
 {
 	GENERATED_BODY()
 
@@ -71,6 +73,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Input, meta = (AllowPrivateAccess = "true"))
 	bool bCanJumpDuringDialogue;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UDialogueSpeakerComponent* DialogueSpeakerComponent;
+
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Input, DisplayName = "Can Jump During Dialogue")
 	FORCEINLINE bool CanJumpDuringDialogue() const { return bCanJumpDuringDialogue; }
@@ -79,4 +84,7 @@ public:
 	FORCEINLINE void SetCanJumpDuringDialogue(const bool bNewCanJumpDuringDialogue) { bCanJumpDuringDialogue = bNewCanJumpDuringDialogue; }
 
 	virtual bool CanJumpInternal_Implementation() const override;
+
+	UFUNCTION(BlueprintCallable, Category = "Dialogue", DisplayName = "Get Dialogue Speaker Component")
+	FORCEINLINE UDialogueSpeakerComponent* GetDialogueSpeakerComponent_Implementation() const override { return DialogueSpeakerComponent; }
 };
