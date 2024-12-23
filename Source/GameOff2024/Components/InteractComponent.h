@@ -24,4 +24,16 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
+
+protected:
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="Interact", DisplayName="Get Closest Actor")
+	virtual AActor* GetClosestActor(FVector SpherePos, float SphereRadius, const TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes, UClass*
+	                                ActorClassFilter, const TArray<AActor*>& ActorsToIgnore) const;
+
+	UFUNCTION(BlueprintCallable, Category="Interact", DisplayName="Is Actor In Line Sight")
+	virtual bool IsActorInLineSight(FVector StartLocation, const AActor* Actor, FName ProfileName, const TArray<AActor*>& ActorsToIgnore) const;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Properties")
+	float MaxAngle = 75.f;
 };
