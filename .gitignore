@@ -76,5 +76,5 @@ DerivedDataCache/*
 # JetBrains Rider
 .idea/*
 
-# Map changes (temporary)
-Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/*
+## Map changes (temporary)
+#Content/__ExternalActors__/ThirdPerson/Maps/ThirdPersonMap/*
