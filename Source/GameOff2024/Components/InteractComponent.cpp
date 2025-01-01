@@ -1,103 +1,128 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
+// Copyright 2024. All Rights Reserved.
 
 #include "InteractComponent.h"
 
+// Unreal includes
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Character.h"
-#include "GameOff2024/PlayerHelpers/PlayerCharacterHelpers.h"
-#include "GameOff2024/PlayerHelpers/PlayerCollisionHelper.h"
-#include "GameOff2024/PlayerHelpers/PlayerTransformHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+// Local includes
+#include "GameOff2024/PlayerHelpers/PlayerCharacterHelpers.h"
+#include "GameOff2024/PlayerHelpers/PlayerCollisionHelper.h"
+#include "GameOff2024/PlayerHelpers/PlayerTransformHelpers.h"
 
-// Sets default values for this component's properties
+
 UInteractComponent::UInteractComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
-
-// Called when the game starts
 void UInteractComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
 }
 
-
-// Called every frame
-void UInteractComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                       FActorComponentTickFunction* ThisTickFunction)
+void UInteractComponent::TickComponent(
+	float DeltaTime,
+	ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction
+)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	// Potential expansions or debugging code can go here
 }
 
-AActor* UInteractComponent::GetClosestActor(const FVector SpherePos,
-                                            float SphereRadius,
-                                            const TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes,
-                                            UClass* ActorClassFilter, const TArray<AActor*>& ActorsToIgnore) const
+AActor* UInteractComponent::GetClosestActor(
+	const FVector SpherePos,
+	float SphereRadius,
+	const TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes,
+	UClass* ActorClassFilter,
+	const TArray<AActor*>& ActorsToIgnore
+) const
 {
-	if (const UWorld* World = GetWorld())
+	if (!GetWorld())
 	{
-		// Define the method to get the Actors
-		// Here we'll use a Sphere Overlap to filter the first batch of Actors within the radius
-		TArray<AActor*> Actors;
-		UKismetSystemLibrary::SphereOverlapActors(World, SpherePos, SphereRadius, ObjectTypes,
-												  ActorClassFilter, ActorsToIgnore, Actors);
+		return nullptr;
+	}
 
-		// For each of those Actors, determine which one is within the FoV and closest to where the Player is looking
-		if (const UCapsuleComponent* PlayerCapsuleComponent = UPlayerCollisionHelper::GetPlayerCapsuleComponent(
-			World, 0))
+	// Step 1: Overlap for an initial batch of nearby Actors within the given radius.
+	TArray<AActor*> OverlappedActors;
+	UKismetSystemLibrary::SphereOverlapActors(
+		GetWorld(),
+		SpherePos,
+		SphereRadius,
+		ObjectTypes,
+		ActorClassFilter,
+		ActorsToIgnore,
+		OverlappedActors
+	);
+
+	// Step 2: If no Player capsule is found, we can't proceed with angle checks.
+	const UCapsuleComponent* PlayerCapsule = UPlayerCollisionHelper::GetPlayerCapsuleComponent(GetWorld(), /*PlayerIndex=*/0);
+	if (!PlayerCapsule)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UInteractComponent::GetClosestActor - No valid PlayerCapsule found!"));
+		return nullptr;
+	}
+
+	// Gather references for angle calculations.
+	const FVector PlayerForward = PlayerCapsule->GetForwardVector();
+	const FVector PlayerLocation = UPlayerTransformHelpers::GetPlayerLocation(GetWorld());
+
+	float NarrowestAngle = 360.0f;
+	AActor* BestActor = nullptr;
+
+	for (AActor* Candidate : OverlappedActors)
+	{
+		if (!Candidate)
 		{
-			FVector PlayerForwardVector = PlayerCapsuleComponent->GetForwardVector();
-			FVector PlayerLocation = UPlayerTransformHelpers::GetPlayerLocation(World);
-		
-			float BestAngle = 360.0f;
+			continue;
+		}
+		const FVector DirectionToCandidate = (Candidate->GetActorLocation() - PlayerLocation).GetSafeNormal();
+		const float DotProduct = FVector::DotProduct(DirectionToCandidate, PlayerForward);
 
-			AActor* ClosestActor = nullptr;
+		// Dot -> angle
+		// clamp to avoid domain errors in FMath::Acos
+		const float ClampedDot = FMath::Clamp(DotProduct, -1.0f, 1.0f);
+		const float AngleDegrees = FMath::RadiansToDegrees(FMath::Acos(ClampedDot));
 
-			for (const auto Candidate : Actors)
-			{
-				FVector CandidateLocation = Candidate->GetActorLocation();
-
-				FVector DirectionToCandidate = UKismetMathLibrary::Normal(CandidateLocation - PlayerLocation);
-
-				double DotProduct = UKismetMathLibrary::Dot_VectorVector(DirectionToCandidate, PlayerForwardVector);
-				float AngleDegrees = UKismetMathLibrary::RadiansToDegrees(acos(DotProduct));
-
-				if (AngleDegrees <= MaxAngle && AngleDegrees < BestAngle)
-				{
-					ClosestActor = Candidate;
-					BestAngle = AngleDegrees;
-				}
-			}
-
-			return ClosestActor;
+		if (AngleDegrees <= MaxAngle && AngleDegrees < NarrowestAngle)
+		{
+			BestActor = Candidate;
+			NarrowestAngle = AngleDegrees;
 		}
 	}
-	return nullptr;
+
+	return BestActor;
 }
 
-bool UInteractComponent::IsActorInLineSight(const FVector StartLocation, const AActor* Actor, FName ProfileName, const TArray<AActor*>& ActorsToIgnore) const
+bool UInteractComponent::IsActorInLineSight(
+	const FVector StartLocation,
+	const AActor* Actor,
+	FName ProfileName,
+	const TArray<AActor*>& ActorsToIgnore
+) const
 {
-	if (const UWorld* World = GetWorld())
+	if (!GetWorld() || !Actor)
 	{
-		FHitResult Hit;
-	
-		UKismetSystemLibrary::LineTraceSingleByProfile(World, StartLocation, Actor->GetActorLocation(), ProfileName, true, ActorsToIgnore,EDrawDebugTrace::ForDuration, Hit, true);
-		
-		if (Hit.GetActor() == Actor)
-			return true;
+		return false;
 	}
-	
-	return false;
+
+	FHitResult HitResult;
+	UKismetSystemLibrary::LineTraceSingleByProfile(
+		GetWorld(),
+		StartLocation,
+		Actor->GetActorLocation(),
+		ProfileName,
+		/*bTraceComplex=*/true,
+		ActorsToIgnore,
+		/*DrawDebugType=*/EDrawDebugTrace::ForDuration,
+		HitResult,
+		/*bIgnoreSelf=*/true
+	);
+
+	return (HitResult.GetActor() == Actor);
 }
+
