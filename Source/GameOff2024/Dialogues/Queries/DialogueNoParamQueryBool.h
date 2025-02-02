@@ -31,7 +31,7 @@ public:
 	* User specified query. Implemented via blueprint.
 	*/
 	UFUNCTION(BlueprintImplementableEvent, Category = "Dialogue")
-	bool QuerySpeaker() const;
+	bool QuerySpeaker();
 	
 	/**
 	* User defineable function to check if the query is valid.
