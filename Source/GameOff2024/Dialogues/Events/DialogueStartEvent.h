@@ -3,9 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-//UE
 #include "Events/DialogueEventBase.h"
-//Plugin
 #include "DialogueSpeakerComponent.h"
 #include "SpeechDetails.h"
 
@@ -50,7 +48,7 @@ public:
 
 protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Dialogue")
-	void OnPlayEvent(const TArray< FSpeakerActorEntry>& Speakers);
+	void OnPlayEvent(const TArray<FSpeakerActorEntry>& Speakers);
 	virtual void OnPlayEvent_Implementation(const TArray<FSpeakerActorEntry>& Speakers) {};
 
 protected:

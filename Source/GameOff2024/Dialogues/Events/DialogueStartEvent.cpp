@@ -2,13 +2,10 @@
 
 #include "DialogueStartEvent.h"
 
-//Unreal
 #include "Engine/World.h"
-//Plugin
 #include "Dialogue.h"
 #include "DialogueSpeakerComponent.h"
 #include "DialogueSpeakerSocket.h"
-#include "LogDialogueTree.h"
 
 void UDialogueStartEvent::PlayEvent()
 {
