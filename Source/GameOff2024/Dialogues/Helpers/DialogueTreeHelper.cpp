@@ -37,8 +37,7 @@ UDialogueNode* UDialogueTreeHelper::GetNode(const UObject* WorldContextObject, c
 			continue;
 		}
 
-		if (Node->GetNodeTitle(ENodeTitle
-			Type::Type::FullTitle).ToString() == NodeName.ToString())
+		if (Node->GetNodeTitle(ENodeTitleType::Type::FullTitle).ToString() == NodeName.ToString())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Node %s found"), *NodeName.ToString());
 			return Cast<UDialogueNode>(Node); // Return the found node instead of nullptr
