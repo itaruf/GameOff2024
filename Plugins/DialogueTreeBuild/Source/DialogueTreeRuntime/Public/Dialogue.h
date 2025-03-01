@@ -439,7 +439,7 @@ private:
 
 	/** The editor graph associated with this dialogue */
 	UPROPERTY()
-	TSoftObjectPtr<UEdGraph> EdGraph = nullptr;
+	TObjectPtr<UEdGraph> EdGraph = nullptr;
 
 #endif
 
