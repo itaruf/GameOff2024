@@ -113,6 +113,18 @@ public:
 	/** End UObject */
 #endif
 
+	/** Map storing runtime-accessible nodes instead of relying on UEdGraph */
+	UPROPERTY()
+	TMap<FName, TObjectPtr<UDialogueNode>> RuntimeDialogueNodes;
+
+	/** Retrieves a node from the runtime storage */
+	UFUNCTION(BlueprintCallable, Category="Dialogue")
+	UDialogueNode* GetRuntimeNode(FName NodeID) const;
+    
+	/** Checks if a node exists in the runtime storage */
+	UFUNCTION(BlueprintCallable, Category="Dialogue")
+	bool HasRuntimeNode(FName NodeID) const;
+	
 	/**
 	* Sets the component value associated with the given name 
 	* to the provided speaker component. BlueprintCallable. 

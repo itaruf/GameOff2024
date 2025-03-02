@@ -45,6 +45,20 @@ void UDialogue::PostEditChangeProperty(
 
 #endif
 
+UDialogueNode* UDialogue::GetRuntimeNode(FName NodeID) const
+{
+	if (RuntimeDialogueNodes.Contains(NodeID))
+	{
+		return RuntimeDialogueNodes[NodeID];
+	}
+	return nullptr;
+}
+
+bool UDialogue::HasRuntimeNode(FName NodeID) const
+{
+	return RuntimeDialogueNodes.Contains(NodeID);
+}
+
 void UDialogue::SetSpeaker(FName InName, UDialogueSpeakerComponent* InSpeaker)
 {
 	if (Speakers.Contains(InName))
@@ -343,13 +357,24 @@ void UDialogue::ClearDialogue()
 
 void UDialogue::PreCompileDialogue()
 {
-	ClearDialogue();
+#if WITH_EDITOR
+	RuntimeDialogueNodes.Empty();
 
-	//Refresh the accessible speaker component entries from their roles
-	for (auto& Entry : SpeakerRoles)
+	// Convert from editor nodes to runtime storage
+	if (EdGraph)
 	{
-		AddSpeakerEntry(Entry.Key);
+		for (UEdGraphNode* Node : EdGraph->Nodes)
+		{
+			UDialogueNode* DialogueNode = Cast<UDialogueNode>(Node);
+			if (DialogueNode)
+			{
+				RuntimeDialogueNodes.Add(DialogueNode->GetFName(), DialogueNode);
+			}
+		}
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Dialogue compiled: %d nodes stored."), RuntimeDialogueNodes.Num());
+#endif
 }
 
 void UDialogue::SetCompileStatus(EDialogueCompileStatus InStatus)
@@ -446,7 +471,7 @@ void UDialogue::OnChangeSingleSpeaker()
 }
 
 bool UDialogue::CanPlay(ADialogueController* InController,
-	FString& OutErrorMessage) const
+                        FString& OutErrorMessage) const
 {
 	if (CompileStatus != EDialogueCompileStatus::Compiled)
 	{

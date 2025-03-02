@@ -20,33 +20,18 @@ UDialogueNode* UDialogueTreeHelper::GetNode(const UObject* WorldContextObject, c
 		return nullptr;
 	}
 
-	// Ensure GetEdGraph() is valid before accessing Nodes
-	UEdGraph* EdGraph = Dialogue->GetEdGraph();
-	if (!EdGraph)
+	// Use runtime-accessible node storage instead of UEdGraph
+	UDialogueNode* FoundNode = Dialogue->GetRuntimeNode(NodeName);
+	if (FoundNode)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Dialogue's EdGraph is null."));
-		return nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("Node %s found"), *NodeName.ToString());
+		return FoundNode;
 	}
 
-	auto& Nodes = EdGraph->Nodes;
-	for (auto& Node : Nodes)
-	{
-		if (!Node) // Ensure the Node is valid before using it
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Encountered a null node in the dialogue graph."));
-			continue;
-		}
-
-		if (Node->GetNodeTitle(ENodeTitleType::Type::FullTitle).ToString() == NodeName.ToString())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Node %s found"), *NodeName.ToString());
-			return Cast<UDialogueNode>(Node); // Return the found node instead of nullptr
-		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Node %s not found in the dialogue graph."), *NodeName.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("Node %s not found."), *NodeName.ToString());
 	return nullptr;
 }
+
 
 bool UDialogueTreeHelper::HasNode(const UObject* WorldContextObject, const UDialogue* Dialogue, const FName NodeID)
 {
