@@ -93,7 +93,7 @@ bool UInteractComponent::IsActorInLineSight(const FVector StartLocation, const A
 	{
 		FHitResult Hit;
 	
-		UKismetSystemLibrary::LineTraceSingleByProfile(World, StartLocation, Actor->GetActorLocation(), ProfileName, true, ActorsToIgnore,EDrawDebugTrace::ForDuration, Hit, true);
+		UKismetSystemLibrary::LineTraceSingleByProfile(World, StartLocation, Actor->GetActorLocation(), ProfileName, true, ActorsToIgnore,EDrawDebugTrace::None, Hit, true);
 		
 		if (Hit.GetActor() == Actor)
 			return true;
