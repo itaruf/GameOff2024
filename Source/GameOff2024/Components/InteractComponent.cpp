@@ -43,40 +43,59 @@ void UInteractComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 AActor* UInteractComponent::GetClosestActor(const FVector SpherePos,
                                             float SphereRadius,
                                             const TArray<TEnumAsByte<EObjectTypeQuery>>& ObjectTypes,
-                                            UClass* ActorClassFilter, const TArray<AActor*>& ActorsToIgnore) const
+                                            UClass* ActorClassFilter,
+                                            const TArray<AActor*>& ActorsToIgnore) const
 {
 	if (const UWorld* World = GetWorld())
 	{
-		// Define the method to get the Actors
-		// Here we'll use a Sphere Overlap to filter the first batch of Actors within the radius
+		// Gather all overlapping actors within the sphere.
 		TArray<AActor*> Actors;
 		UKismetSystemLibrary::SphereOverlapActors(World, SpherePos, SphereRadius, ObjectTypes,
 		                                          ActorClassFilter, ActorsToIgnore, Actors);
 
-		// For each of those Actors, determine which one is within the FoV and closest to where the Player is looking
-		if (const UCapsuleComponent* PlayerCapsuleComponent = UPlayerCollisionHelper::GetPlayerCapsuleComponent(
-			World, 0))
+		// Get the player's capsule component and associated location/forward vector.
+		if (const UCapsuleComponent* PlayerCapsuleComponent = UPlayerCollisionHelper::GetPlayerCapsuleComponent(World, 0))
 		{
 			FVector PlayerForwardVector = PlayerCapsuleComponent->GetForwardVector();
 			FVector PlayerLocation = UPlayerTransformHelpers::GetPlayerLocation(World);
 
-			float BestAngle = 360.0f;
+			// Define a threshold: if a candidate is this close, ignore the angle test.
+			const float CloseDistanceThreshold = 100.0f; // Adjust as needed.
+			const float CloseDistanceThresholdSq = FMath::Square(CloseDistanceThreshold);
 
+			float BestAngle = 360.0f;
+			float BestDistanceSq = FLT_MAX;
 			AActor* ClosestActor = nullptr;
 
-			for (const auto Candidate : Actors)
+			for (const AActor* Candidate : Actors)
 			{
 				FVector CandidateLocation = Candidate->GetActorLocation();
+				float DistanceSq = FVector::DistSquared(CandidateLocation, PlayerLocation);
 
-				FVector DirectionToCandidate = UKismetMathLibrary::Normal(CandidateLocation - PlayerLocation);
-
-				double DotProduct = UKismetMathLibrary::Dot_VectorVector(DirectionToCandidate, PlayerForwardVector);
-				float AngleDegrees = UKismetMathLibrary::RadiansToDegrees(acos(DotProduct));
-
-				if (AngleDegrees <= MaxAngle && AngleDegrees < BestAngle)
+				// If candidate is extremely close, select it based on distance.
+				if (DistanceSq < CloseDistanceThresholdSq)
 				{
-					ClosestActor = Candidate;
-					BestAngle = AngleDegrees;
+					if (DistanceSq < BestDistanceSq)
+					{
+						BestDistanceSq = DistanceSq;
+						ClosestActor = const_cast<AActor*>(Candidate);
+					}
+				}
+				else
+				{
+					// Compute direction to candidate using safe normalization.
+					FVector DirectionToCandidate = (CandidateLocation - PlayerLocation).GetSafeNormal();
+					float DotProduct = FVector::DotProduct(DirectionToCandidate, PlayerForwardVector);
+					// Clamp dot product to avoid NaN due to floating point error.
+					DotProduct = FMath::Clamp(DotProduct, -1.0f, 1.0f);
+					float AngleDegrees = FMath::RadiansToDegrees(FMath::Acos(DotProduct));
+
+					// Check if the candidate is within the maximum angle and if it has the smallest angle so far.
+					if (AngleDegrees <= MaxAngle && AngleDegrees < BestAngle)
+					{
+						BestAngle = AngleDegrees;
+						ClosestActor = const_cast<AActor*>(Candidate);
+					}
 				}
 			}
 
@@ -85,7 +104,6 @@ AActor* UInteractComponent::GetClosestActor(const FVector SpherePos,
 	}
 	return nullptr;
 }
-
 
 bool UInteractComponent::IsActorInLineSight(
 	const FVector StartLocation,
