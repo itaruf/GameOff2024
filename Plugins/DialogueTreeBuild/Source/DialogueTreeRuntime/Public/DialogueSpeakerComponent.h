@@ -101,14 +101,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Dialogue")
 	FName GetDialogueName() const;
 
-	/**
-	* Sets the speaker's owned dialogue to the provided dialogue asset. 
-	* 
-	* @param InDialogue - UDialogue*, the target dialogue. 
-	*/
 	UFUNCTION(BlueprintCallable, Category = "Dialogue")
 	void SetOwnedDialogue(UDialogue* InDialogue);
-
+	
 	/**
 	* Retrieves the speaker's owned dialogue. 
 	* 

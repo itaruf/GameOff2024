@@ -61,10 +61,10 @@ bool UDialogue::HasRuntimeNode(FName NodeID) const
 
 void UDialogue::SetSpeaker(FName InName, UDialogueSpeakerComponent* InSpeaker)
 {
-	if (Speakers.Contains(InName))
-	{
-		Speakers[InName] = InSpeaker;
-	}
+	if (!Speakers.Contains(InName))
+		Speakers.Add(InName);
+
+	Speakers[InName] = InSpeaker;
 }
 
 UDialogueSpeakerComponent* UDialogue::GetSpeaker(FName InName) const
@@ -494,23 +494,16 @@ bool UDialogue::CanPlay(ADialogueController* InController,
 
 void UDialogue::FillSpeakers(TMap<FName, UDialogueSpeakerComponent*> InSpeakers)
 {
-	//Clear speakers 
-	for (auto& Entry : Speakers)
-	{
-		Entry.Value = nullptr;
-	}
-
-	//Set speakers
+	// Optionally, update only keys that are provided, leaving others intact.
 	for (auto& Entry : InSpeakers)
 	{
-		if (Speakers.Contains(Entry.Key) &&
-			Entry.Value != nullptr)
+		if (Entry.Value != nullptr)
 		{
-			Speakers[Entry.Key] = Entry.Value;
+			Speakers.Add(Entry.Key, Entry.Value);
 		}
 	}
 
-	//Verify that no speakers are missing 
+	// Verify that no speakers are missing 
 	for (auto& Entry : Speakers)
 	{
 		if (!Entry.Value)

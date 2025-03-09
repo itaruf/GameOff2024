@@ -20,7 +20,7 @@ void UDialogueSpeakerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UDialogueManagerSubsystem* DialogueSubsystem = 
+	UDialogueManagerSubsystem* DialogueSubsystem =
 		GetWorld()->GetSubsystem<UDialogueManagerSubsystem>();
 	check(DialogueSubsystem);
 
@@ -28,8 +28,8 @@ void UDialogueSpeakerComponent::BeginPlay()
 	if (!DialogueController)
 	{
 		UE_LOG(
-			LogDialogueTree, 
-			Error, 
+			LogDialogueTree,
+			Error,
 			TEXT("Speaker component failed to find an active dialogue controller")
 		);
 		return;
@@ -83,7 +83,7 @@ FGameplayTagContainer UDialogueSpeakerComponent::GetCurrentGameplayTags()
 
 void UDialogueSpeakerComponent::EndCurrentDialogue()
 {
-	if (!DialogueController 
+	if (!DialogueController
 		|| !DialogueController->SpeakerInCurrentDialogue(this))
 	{
 		return;
@@ -94,7 +94,7 @@ void UDialogueSpeakerComponent::EndCurrentDialogue()
 
 void UDialogueSpeakerComponent::TrySkipSpeech()
 {
-	if (!DialogueController || 
+	if (!DialogueController ||
 		!DialogueController->SpeakerInCurrentDialogue(this))
 	{
 		return;
@@ -141,14 +141,14 @@ void UDialogueSpeakerComponent::StartOwnedDialogue(
 	}
 }
 
-void UDialogueSpeakerComponent::StartDialogueWithNames(UDialogue* InDialogue, 
-	TMap<FName, UDialogueSpeakerComponent*> InSpeakers, bool bResume)
-{	 
+void UDialogueSpeakerComponent::StartDialogueWithNames(UDialogue* InDialogue,
+                                                       TMap<FName, UDialogueSpeakerComponent*> InSpeakers, bool bResume)
+{
 	if (!InDialogue)
 	{
 		UE_LOG(
-			LogDialogueTree, 
-			Warning, 
+			LogDialogueTree,
+			Warning,
 			TEXT("Speaker: No valid dialogue found to start")
 		);
 		return;
@@ -158,8 +158,8 @@ void UDialogueSpeakerComponent::StartDialogueWithNames(UDialogue* InDialogue,
 	if (!DialogueController)
 	{
 		UE_LOG(
-			LogDialogueTree, 
-			Error, 
+			LogDialogueTree,
+			Error,
 			TEXT("Speaker could not start dialogue because dialogue controller was invalid")
 		);
 		return;
@@ -170,7 +170,7 @@ void UDialogueSpeakerComponent::StartDialogueWithNames(UDialogue* InDialogue,
 }
 
 void UDialogueSpeakerComponent::StartDialogue(UDialogue* InDialogue,
-	TArray<UDialogueSpeakerComponent*> InSpeakers, bool bResume)
+                                              TArray<UDialogueSpeakerComponent*> InSpeakers, bool bResume)
 {
 	//Validate that a dialogue was provided 
 	if (!InDialogue)
@@ -244,8 +244,8 @@ void UDialogueSpeakerComponent::StartDialogueWithNamesAt(UDialogue* InDialogue, 
 
 	//Start the dialogue 
 	DialogueController->StartDialogueWithNamesAt(
-		InDialogue, 
-		InNodeID, 
+		InDialogue,
+		InNodeID,
 		InSpeakers
 	);
 }
@@ -286,7 +286,7 @@ void UDialogueSpeakerComponent::StartDialogueAt(UDialogue* InDialogue, FName InN
 FSpeakerActorEntry UDialogueSpeakerComponent::ToSpeakerActorEntry()
 {
 	FSpeakerActorEntry Entry;
-	Entry.SpeakerComponent = this; 
+	Entry.SpeakerComponent = this;
 	Entry.Actor = GetOwner();
 
 	return Entry;
