@@ -31,7 +31,7 @@ protected:
 	                                ActorClassFilter, const TArray<AActor*>& ActorsToIgnore) const;
 
 	UFUNCTION(BlueprintCallable, Category="Interact", DisplayName="Is Actor In Line Sight")
-	virtual bool IsActorInLineSight(FVector StartLocation, const AActor* Actor, FName ProfileName, const TArray<AActor*>& ActorsToIgnore) const;
+	virtual bool IsActorInLineSight(FVector StartLocation, const AActor* Actor, const TArray<TEnumAsByte<ECollisionChannel>>& ChannelsToTrace, const TArray<AActor*>& ActorsToIgnore) const;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Properties")
