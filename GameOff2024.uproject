@@ -53,7 +53,19 @@
 		{
 			"Name": "DialogueTree",
 			"Enabled": true,
-  			"Type": "Runtime"
+			"Type": "Runtime"
+		},
+		{
+			"Name": "OpenImageDenoise",
+			"Enabled": false
+		},
+		{
+			"Name": "MeshPainting",
+			"Enabled": false
+		},
+		{
+			"Name": "GLTFExporter",
+			"Enabled": false
 		}
 	]
 }
