@@ -117,7 +117,6 @@ void UDialogueTransition::Skip()
 	}
 
 	// Immediately transition out.
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Skip"));
 	TransitionOut();
 }
 
