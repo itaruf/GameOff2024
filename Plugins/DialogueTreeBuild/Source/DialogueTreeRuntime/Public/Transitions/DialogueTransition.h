@@ -25,7 +25,7 @@ class DIALOGUETREERUNTIME_API UDialogueTransition : public UObject
 public:
 	//Constructor
 	UDialogueTransition();
-	
+
 public:
 	/**
 	* Sets the owning node. 
@@ -43,7 +43,9 @@ public:
 	/**
 	* Concludes the transition. Largely defined by child transitions.
 	*/
-	virtual void TransitionOut() {};
+	virtual void TransitionOut()
+	{
+	};
 
 	/**
 	* Called when the user selects an option. Transitions to the 
@@ -51,7 +53,9 @@ public:
 	* 
 	* @param InOptionIndex - int32, the index of the selection. 
 	*/
-	virtual void SelectOption(int32 InOptionIndex) {};
+	virtual void SelectOption(int32 InOptionIndex)
+	{
+	};
 
 	/**
 	* Attemps to skip the currently playing speech. Base
@@ -90,7 +94,6 @@ public:
 	void CheckTransitionConditions();
 
 private:
-
 	/**
 	* Called when the speech content has finished playing.
 	*/
@@ -113,6 +116,8 @@ protected:
 
 	/** Whether the audio content has finished playing yet */
 	bool bAudioFinished = false;
+
+	bool bHasBeenSkipped = false;
 
 private:
 	/** Delegate to call when the minimum play time for the node has elapsed */

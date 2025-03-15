@@ -25,38 +25,36 @@ void UDialogueTransition::SetOwningNode(UDialogueSpeechNode* InNode)
 
 void UDialogueTransition::StartTransition()
 {
-	//Reset end marker values
+	// Reset the skip flag and other state variables.
+	bHasBeenSkipped = false;
 	bMinPlayTimeElapsed = false;
 	bAudioFinished = false;
 
-	//Verify owning node exists
+	// Verify owning node exists...
 	if (!OwningNode)
 	{
 		UE_LOG(
 			LogDialogueTree,
 			Error,
 			TEXT("Transition failed to find owning node. Ending dialogue early."));
-
 		OwningNode->GetDialogue()->EndDialogue();
 		return;
 	}
 
-	//Get speaker
+	// Get speaker...
 	UDialogueSpeakerComponent* Speaker = OwningNode->GetSpeaker();
 	if (!Speaker)
 	{
 		UE_LOG(
 			LogDialogueTree,
-			Error, 
+			Error,
 			TEXT("Transition failed to find speaker component. Ending dialogue early."));
-
 		OwningNode->GetDialogue()->EndDialogue();
 		return;
 	}
 
-	//Set timer for minimum play time
+	// Set timer for minimum play time
 	float MinPlayTime = OwningNode->GetDetails().MinimumPlayTime;
-
 	if (MinPlayTime > 0.01f)
 	{
 		Speaker->GetWorld()->GetTimerManager().SetTimer(
@@ -66,24 +64,22 @@ void UDialogueTransition::StartTransition()
 			false
 		);
 	}
-	//No minimum time
 	else
 	{
 		bMinPlayTimeElapsed = true;
 	}
 
-	//Start listening to see when the audio content finishes 
+	// Start listening for audio finish
 	if (Speaker->IsPlaying())
 	{
 		Speaker->OnAudioFinished.AddUnique(OnContentEnd);
 	}
-	//No audio playing 
 	else
 	{
 		bAudioFinished = true;
 	}
 
-	//If no minimum time or audio content, just transition out 
+	// If conditions are already met, transition out immediately.
 	if (bMinPlayTimeElapsed && bAudioFinished)
 	{
 		TransitionOut();
@@ -92,20 +88,37 @@ void UDialogueTransition::StartTransition()
 
 void UDialogueTransition::Skip()
 {
+	// Mark that skip has been triggered.
+	bHasBeenSkipped = true;
+
+	// Cancel the auto-input timer if it's active.
+	if (OwningNode)
+	{
+		UWorld* World = OwningNode->GetWorld();
+		if (World && World->GetTimerManager().IsTimerActive(MinPlayTimeHandle))
+		{
+			World->GetTimerManager().ClearTimer(MinPlayTimeHandle);
+		}
+	}
+
+	// Force the minimum play time condition to be met.
+	bMinPlayTimeElapsed = true;
+
+	// If the audio hasn't finished, force it to complete.
 	if (!bAudioFinished)
 	{
 		OnDonePlayingContent();
 	}
 
-	if (!bMinPlayTimeElapsed)
+	// Let the speaker know we are skipping its speech.
+	if (OwningNode && OwningNode->GetSpeaker())
 	{
-		OnMinPlayTimeElapsed();
+		OwningNode->GetSpeaker()->BroadcastSpeechSkipped(OwningNode->GetDetails());
 	}
 
-	//Let the speaker know we are skipping its speech
-	OwningNode->GetSpeaker()->BroadcastSpeechSkipped(
-		OwningNode->GetDetails()
-	);
+	// Immediately transition out.
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Skip"));
+	TransitionOut();
 }
 
 FText UDialogueTransition::GetDisplayName() const
@@ -133,6 +146,11 @@ void UDialogueTransition::CheckTransitionConditions()
 
 void UDialogueTransition::OnDonePlayingContent()
 {
+	if (bHasBeenSkipped)
+	{
+		return; // Skip further processing if we've already skipped.
+	}
+
 	//Unbind from audio event 
 	UDialogueSpeakerComponent* Speaker = OwningNode->GetSpeaker();
 
@@ -151,6 +169,11 @@ void UDialogueTransition::OnDonePlayingContent()
 
 void UDialogueTransition::OnMinPlayTimeElapsed()
 {
+	if (bHasBeenSkipped)
+	{
+		return; // Exit if already skipped.
+	}
+
 	//Mark min play time elapsed
 	bMinPlayTimeElapsed = true;
 
