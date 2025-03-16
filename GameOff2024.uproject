@@ -258,6 +258,14 @@
 		{
 			"Name": "XGEController",
 			"Enabled": false
+		},
+		{
+			"Name": "ZoneGraph",
+			"Enabled": true
+		},
+		{
+			"Name": "ZoneGraphAnnotations",
+			"Enabled": true
 		}
 	]
 }
